@@ -303,6 +303,7 @@ function Resultados({ resultado, payload, firma, onNueva }) {
           <div>
             <p className="sobretitulo">Auditoría experta</p>
             <p className="pro-titulo">Revisión manual con teclado y lector de pantalla, con un plan de acción priorizado.</p>
+            <p className="pro-sello">Los sitios que aprueban la revisión reciben el <strong>Sello Accesa</strong>.</p>
           </div>
           <a className="btn-primario" href={CONTACTO}>Conversemos</a>
         </div>

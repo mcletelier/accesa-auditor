@@ -152,3 +152,4 @@ input:focus-visible { border-color: var(--foco); outline: 3px solid var(--foco);
 .tramo-medio .tramo-etiqueta { color: var(--dorado); }
 .tramo-bajo .tramo-etiqueta { color: var(--terracota-texto); }
 .tramo-parcial .tramo-etiqueta { color: var(--suave); }
+.pro-sello { color: var(--suave); margin-top: 6px; } .pro-sello strong { color: var(--dorado); }
