@@ -72,7 +72,7 @@ export async function onRequestPost({ request, env }) {
 
   // 2. Aviso del nuevo contacto para Accesa (se intenta aunque falle el envío a la persona)
   const errores = r.hallazgos.filter((h) => h.severity === "error").length;
-  const aviso = await enviar(env, {
+  const correoAviso = {
     from,
     to: [avisoA],
     reply_to: email,
@@ -86,7 +86,13 @@ export async function onRequestPost({ request, env }) {
       <p>Estado del envío a la persona: ${envio.ok ? "enviado ✔" : `<strong>falló</strong> (${escapeHtml(envio.texto.slice(0, 200))})`}</p>
       <p>Puedes responder este correo para escribirle directamente.</p></div>`,
     text: `${nombre} <${email}>${organizacion ? ` · ${organizacion}` : ""} pidió el informe de ${r.url}. Puntaje ${r.puntaje ?? "—"}. Envío a la persona: ${envio.ok ? "ok" : "falló"}.`,
-  });
+  };
+  let aviso = await enviar(env, correoAviso);
+  // Si el dominio aún no está verificado en Resend, el aviso se reintenta con el remitente de
+  // prueba de Resend, que funciona cuando CONTACT_TO es el correo dueño de la cuenta.
+  if (!aviso.ok && aviso.status === 403) {
+    aviso = await enviar(env, { ...correoAviso, from: "Accesa <onboarding@resend.dev>" });
+  }
 
   if (!envio.ok) {
     const dominioNoVerificado = envio.status === 403 || /verify a domain|testing emails|not verified/i.test(envio.texto);
