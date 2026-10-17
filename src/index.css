@@ -144,3 +144,11 @@ input:focus-visible { border-color: var(--foco); outline: 3px solid var(--foco);
 
 .nota { font-size: 14px; color: var(--suave); margin-top: 14px; padding: 10px 14px; border-left: 3px solid var(--borde-control); background: var(--superficie); border-radius: 4px; }
 .nota strong { color: var(--texto); }
+
+.tramo { margin-bottom: 14px; }
+.tramo-etiqueta { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.tramo-frase { font-size: 18px; font-weight: 500; color: var(--texto); }
+.tramo-alto .tramo-etiqueta, .tramo-bueno .tramo-etiqueta { color: var(--verde-texto); }
+.tramo-medio .tramo-etiqueta { color: var(--dorado); }
+.tramo-bajo .tramo-etiqueta { color: var(--terracota-texto); }
+.tramo-parcial .tramo-etiqueta { color: var(--suave); }

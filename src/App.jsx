@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { informeHTML } from "../lib/informe.js";
+import { informeHTML, clasificar } from "../lib/informe.js";
 
 const CONTACTO = "https://accesa.agency/#contacto";
 
@@ -84,7 +84,7 @@ function Cargando({ url }) {
 function Puntaje({ valor }) {
   if (valor == null) return <div className="puntaje vacio"><span className="num">—</span><span className="de">sin puntaje</span></div>;
   const r = 52, c = 2 * Math.PI * r;
-  const clase = valor >= 80 ? "alto" : valor >= 50 ? "medio" : "bajo";
+  const clase = valor >= 70 ? "alto" : valor >= 50 ? "medio" : "bajo";
   return (
     <div className={`puntaje ${clase}`}>
       <svg width="130" height="130" viewBox="0 0 130 130" aria-hidden="true" focusable="false">
@@ -250,6 +250,12 @@ function Resultados({ resultado, payload, firma, onNueva }) {
         <Puntaje valor={resultado.puntaje} />
         <div>
           <h2 id="t-diag">Diagnóstico</h2>
+          {(() => { const c = clasificar(resultado.puntaje); return (
+            <div className={`tramo tramo-${c.tramo}`}>
+              <p className="tramo-etiqueta">{c.etiqueta}</p>
+              <p className="tramo-frase">{c.frase}</p>
+            </div>
+          ); })()}
           <p>{resultado.resumen}</p>
           <dl className="cifras">
             <div><dt>Tipos de falla</dt><dd className="c-falla">{errores.length}</dd></div>
