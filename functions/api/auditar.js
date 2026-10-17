@@ -15,15 +15,28 @@ import { json, mismoOrigen, normalizarUrl, firmar } from "../../lib/servidor.js"
 const MAX_HTML = 3 * 1024 * 1024;
 const MAX_CSS = 400 * 1024;
 const UA = "Mozilla/5.0 (compatible; AccesaAuditor/2.0; +https://accesa.agency)";
+// Algunos sitios bloquean cualquier cliente que no se identifique como navegador.
+// Si responden «acceso denegado», se reintenta una vez con encabezados de navegador.
+const UA_NAVEGADOR = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+const ENCABEZADOS_NAVEGADOR = {
+  "User-Agent": UA_NAVEGADOR,
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": "es-CL,es;q=0.9,en;q=0.8",
+  "Upgrade-Insecure-Requests": "1",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-User": "?1",
+};
 
-async function descargar(url, { timeout = 15000, max = MAX_HTML, accept = "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5" } = {}) {
+async function descargar(url, { timeout = 15000, max = MAX_HTML, accept = "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5", comoNavegador = false } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeout);
   try {
     const res = await fetch(url, {
       redirect: "follow",
       signal: ctrl.signal,
-      headers: { "User-Agent": UA, Accept: accept, "Accept-Language": "es-CL,es;q=0.9,en;q=0.6" },
+      headers: comoNavegador ? ENCABEZADOS_NAVEGADOR : { "User-Agent": UA, Accept: accept, "Accept-Language": "es-CL,es;q=0.9,en;q=0.6" },
       cf: { cacheTtl: 0 },
     });
     // Lee como máximo `max` bytes para no colgar la función con páginas gigantes
@@ -49,7 +62,7 @@ async function descargar(url, { timeout = 15000, max = MAX_HTML, accept = "text/
 }
 
 function mensajeHttp(status) {
-  if (status === 401 || status === 403) return "El sitio no permitió la revisión automática (respondió «acceso denegado»). Muchos sitios con protección contra bots bloquean estas consultas.";
+  if (status === 401 || status === 403) return "El sitio tiene una protección que bloquea las revisiones automáticas (respondió «acceso denegado»). Si es tu sitio, escríbenos y lo revisamos de otra forma.";
   if (status === 404) return "La página no existe (error 404). Revisa que la dirección esté bien escrita.";
   if (status === 429) return "El sitio está limitando las consultas en este momento. Intenta de nuevo en unos minutos.";
   if (status >= 500) return `El sitio respondió con un error del servidor (${status}). Intenta más tarde.`;
@@ -70,6 +83,11 @@ export async function onRequestPost({ request, env }) {
   let descarga;
   try {
     descarga = await descargar(url.toString());
+    if ([401, 403, 406, 429, 503].includes(descarga.res.status)) {
+      const servidor = descarga.res.headers.get("server") || "?";
+      console.log(`Primer intento ${descarga.res.status} (server: ${servidor}); reintentando como navegador`);
+      descarga = await descargar(url.toString(), { comoNavegador: true });
+    }
   } catch (e) {
     const msg = e.name === "AbortError"
       ? "El sitio tardó demasiado en responder (más de 15 segundos)."
@@ -77,7 +95,10 @@ export async function onRequestPost({ request, env }) {
     return json({ error: msg }, 502);
   }
   const { res, cuerpo, truncado } = descarga;
-  if (!res.ok) return json({ error: mensajeHttp(res.status) }, 502);
+  if (!res.ok) {
+    console.log(`No se pudo revisar ${url}: ${res.status} (server: ${res.headers.get("server") || "?"})`);
+    return json({ error: mensajeHttp(res.status) }, 502);
+  }
   const tipo = (res.headers.get("content-type") || "").toLowerCase();
   if (tipo && !tipo.includes("html")) return json({ error: "Esa dirección no es una página web (parece ser un archivo). Ingresa la dirección de una página HTML." }, 422);
   const finalUrl = res.url || url.toString();
