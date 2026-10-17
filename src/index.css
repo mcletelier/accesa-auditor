@@ -141,3 +141,6 @@ input:focus-visible { border-color: var(--foco); outline: 3px solid var(--foco);
 @media (prefers-reduced-motion: no-preference) {
   .puntaje svg circle:last-child { transition: stroke-dashoffset 1s ease; }
 }
+
+.nota { font-size: 14px; color: var(--suave); margin-top: 14px; padding: 10px 14px; border-left: 3px solid var(--borde-control); background: var(--superficie); border-radius: 4px; }
+.nota strong { color: var(--texto); }

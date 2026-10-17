@@ -46,6 +46,9 @@ function Inicio({ onAuditar, error, urlPrevia }) {
           <button className="btn-primario" type="submit">Auditar</button>
         </div>
         <p id="url-ayuda" className="ayuda">Revisamos una página por vez. No guardamos el contenido de tu sitio.</p>
+        <p className="nota">
+          <strong>Ten en cuenta:</strong> algunos sitios tienen una protección contra robots en su servidor (por ejemplo, una página de «verificando que eres humano») que impide la revisión automática. Si es el caso de tu sitio, <a href={CONTACTO}>escríbenos</a> y lo revisamos de otra forma.
+        </p>
       </form>
     </main>
   );
